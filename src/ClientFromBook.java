@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,20 +13,50 @@ public class ClientFromBook {
 
     JTextArea incoming;
     JTextField outgoing;
+    JTextField jTextFieldForName;
     BufferedReader reader;
     PrintWriter writer;
     Socket sock;
     static int amountClient;
     int numberClient;
 
+    static JFrame frame;
+    private String nameClient;
+    static ClientFromBook clientFromBook;
+
     public static void main(String[] args) {
-        ClientFromBook clientFromBook = new ClientFromBook();
-        clientFromBook.go();
+        clientFromBook = new ClientFromBook();
+//        clientFromBook.go();
+        clientFromBook.beginGo();
     }
 
     public ClientFromBook() {
         amountClient++;
         numberClient = amountClient;
+    }
+
+    public void beginGo() {
+        frame = new JFrame("Authorization");
+
+        JPanel mainPanel = new JPanel();
+        jTextFieldForName = new JTextField(20);
+        JButton jButton = new JButton("Login");
+        jButton.addActionListener(new AuthorizationButtonListener());
+        mainPanel.add(jTextFieldForName);
+
+        mainPanel.add(jButton);
+
+        frame.getContentPane().add(BorderLayout.CENTER, mainPanel);
+        frame.setSize(800, 600);
+        frame.setVisible(true);
+
+        while (true) {
+            if (jTextFieldForName.getText().length() > 0) {
+                jButton.setEnabled(true);
+            } else {
+                jButton.setEnabled(false);
+            }
+        }
     }
 
     public void go() {
@@ -47,9 +78,11 @@ public class ClientFromBook {
         mainPanel.add(sendButton);
         setUpNetworking();
 
+        JLabel jLabelForName = new JLabel(jTextFieldForName.getText());
         Thread readerThread = new Thread(new IncomingReader());
         readerThread.start();
 
+        frame.getContentPane().add(BorderLayout.NORTH, jLabelForName);
         frame.getContentPane().add(BorderLayout.CENTER, mainPanel);
         frame.setSize(800, 600);
         frame.setVisible(true);
@@ -57,7 +90,7 @@ public class ClientFromBook {
 
     private void setUpNetworking() {
         try {
-            sock = new Socket("127.0.0.1", 5000);
+            sock = new Socket("192.168.1.3", 5000);
             InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
             reader = new BufferedReader(streamReader);
             writer = new PrintWriter(sock.getOutputStream());
@@ -73,7 +106,7 @@ public class ClientFromBook {
         public void actionPerformed(ActionEvent actionEvent) {
             try {
                 StringBuffer stringBuffer = new StringBuffer();
-                stringBuffer.replace(0, stringBuffer.length(), numberClient + ": " + outgoing.getText());
+                stringBuffer.replace(0, stringBuffer.length(), jTextFieldForName.getText() + ": " + outgoing.getText());
                 writer.println(stringBuffer.toString());
                 writer.flush();
             } catch (Exception e) {
@@ -90,13 +123,21 @@ public class ClientFromBook {
         public void run() {
             String message;
             try {
-                while ( (message = reader.readLine()) != null) {
+                while ((message = reader.readLine()) != null) {
                     System.out.println("read " + message);
                     incoming.append(message + "\n");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private class AuthorizationButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+            clientFromBook.go();
         }
     }
 }

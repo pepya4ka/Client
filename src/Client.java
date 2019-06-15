@@ -68,11 +68,11 @@ public class Client extends JFrame implements Runnable {
     public void run() {
         try {
 //            while (true) {
-                socket = new Socket(InetAddress.getByName("127.0.0.1"), 5678);
-                outputStream = new ObjectOutputStream(socket.getOutputStream());
-                inputStream = new ObjectInputStream(socket.getInputStream());
-                InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
-                reader = new BufferedReader(streamReader);
+            socket = new Socket(InetAddress.getByName("127.0.0.1"), 5678);
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            inputStream = new ObjectInputStream(socket.getInputStream());
+            InputStreamReader streamReader = new InputStreamReader(socket.getInputStream());
+            reader = new BufferedReader(streamReader);
 //                jTextAreaJPanel2.append("\n" + (String) inputStream.readObject() + "\n");
 //                jTextAreaChat.append((String) inputStream.readObject() + "\n");
 
